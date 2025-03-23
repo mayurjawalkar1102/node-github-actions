@@ -66,7 +66,10 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
-            cd /home/ubuntu/app || (git clone https://github.com/mayurjawalkar1102/Scheduling_cleanup_for_S3_bucket_log.git app && cd app)
-            git pull origin main
-            npm install
-            pm2 restart all || (npm install -g pm2 && pm2 start server.js --name myapp)  # Ensure pm2 is installed
+            script: |
+              sudo apt update && sudo apt install -y git
+              mkdir -p ~/app
+              cd ~/app || (git clone https://github.com/mayurjawalkar1102/node-github-actions.git_log.git app && cd app)
+              git pull origin main
+              npm install
+              pm2 restart all || (sudo npm install -g pm2 && pm2 start server.js --name myapp)
