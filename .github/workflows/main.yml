@@ -35,9 +35,10 @@ jobs:
 
 
   clean-logs:
+    needs: test
     name: Clean Logs from S3
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'schedule' }}  # Explicitly check for schedule event
+    #if: ${{ github.event_name == 'schedule' }}  # Explicitly check for schedule event
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -50,10 +51,11 @@ jobs:
         run: aws s3 rm s3://<your-bucket-name>/logs/ --recursive  # Replace <your-bucket-name> with your actual bucket name
 
   deploy:
+    needs: test
     name: Deploy App
     runs-on: ubuntu-latest
     needs: test  # Only runs if tests pass
-    if: ${{ github.event_name == 'workflow_dispatch' }}  # Runs only on manual trigger
+    #if: ${{ github.event_name == 'workflow_dispatch' }}  # Runs only on manual trigger
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
