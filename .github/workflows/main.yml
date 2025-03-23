@@ -1,0 +1,67 @@
+name: Node.js CI/CD & Log Cleanup
+
+on:
+  push:
+    branches:
+      - main  # Runs when code is pushed to the main branch
+  workflow_dispatch:  # Allows manual trigger for deployment
+  schedule:
+    - cron: '0 0 * * *'  # Runs every day at midnight (UTC)
+
+jobs:
+  test:
+    name: Test Node.js App
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14, 16, 18]  # Test on multiple Node.js versions
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+  clean-logs:
+    name: Clean Logs from S3
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'schedule' }}  # Explicitly check for schedule event
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1  # Change to your region
+
+      - name: Delete logs from S3
+        run: aws s3 rm s3://<your-bucket-name>/logs/ --recursive  # Replace <your-bucket-name> with your actual bucket name
+
+  deploy:
+    name: Deploy App
+    runs-on: ubuntu-latest
+    needs: test  # Only runs if tests pass
+    if: ${{ github.event_name == 'workflow_dispatch' }}  # Runs only on manual trigger
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy Application to EC2
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ubuntu/app || (git clone https://github.com/mayurjawalkar1102/Scheduling_cleanup_for_S3_bucket_log.git app && cd app)
+            git pull origin main
+            npm install
+            pm2 restart all || (npm install -g pm2 && pm2 start server.js --name myapp)  # Ensure pm2 is installed
