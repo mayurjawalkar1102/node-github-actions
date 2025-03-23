@@ -48,7 +48,7 @@ jobs:
           aws-region: ap-south-1  # Change to your region
 
       - name: Delete logs from S3
-        run: aws s3 rm s3://<your-bucket-name>/logs/ --recursive  # Replace <your-bucket-name> with your actual bucket name
+        run: aws s3 rm s3://mayur-log-storage/logs/ --recursive  # Replace <your-bucket-name> with your actual bucket name
 
   deploy:
     name: Deploy App
