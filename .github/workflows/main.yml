@@ -5,8 +5,8 @@ on:
     branches:
       - main  # Runs when code is pushed to the main branch
   workflow_dispatch:  # Allows manual trigger for deployment
-  schedule:
-    - cron: '0 0 * * *'  # Runs every day at midnight (UTC)
+ # schedule:
+    #- cron: '0 0 * * *'  # Runs every day at midnight (UTC)
 
 jobs:
   test:
